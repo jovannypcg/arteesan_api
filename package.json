@@ -1,0 +1,16 @@
+{
+  "name": "arteesan_api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js |./node_modules/.bin/bunyan"
+  },
+  "author": "Arteesan",
+  "license": "ISC",
+  "dependencies": {
+    "bunyan": "^1.5.1",
+    "mongoose": "^4.4.3",
+    "restify": "^4.0.3"
+  }
+}
