@@ -4,7 +4,7 @@ let config = require('./../config/config');
 let objectUtils = require('./object_utilities');
 let responseMessage = require('./messages');
 
-const APPLICATION_URL = config.hostPath + ':' + config.hostPort;
+const APPLICATION_URL = config.app.url;
 
 /**
  * Response an error message to the request.
