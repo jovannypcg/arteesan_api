@@ -1,10 +1,10 @@
 'use strict';
 
-import User from './../models/user';
-import responseMessage from './../utils/messages';
-import securityUtils from './../utils/security_utilities';
-import responseUtils from './../utils/response_utilities';
-import paramsValidator from './../utils/params_validators';
+let User = require('./../models/user');
+let responseMessage = require('./../utils/messages');
+let securityUtils = require('./../utils/security_utilities');
+let responseUtils = require('./../utils/response_utilities');
+let paramsValidator = require('./../utils/params_validators');
 
 const TAG = 'auth_controller';
 const LOG_LEVEL = 'debug';
@@ -15,12 +15,15 @@ const LOGIN_EXPECTED_PARAMS = [
 ]
 
 exports.login = function(request, response, next) {
+    const logger = request.log;
+
     let payload;
     let token;
     let credential;
 
     let username = request.params.username;
     let password = request.params.password;
+
     let query = {
         username: username
     };
@@ -38,7 +41,7 @@ exports.login = function(request, response, next) {
     User.findOne(query).exec().then(foundUser => {
         if (!foundUser || foundUser.password != password) {
             responseUtils.errorResponse(response,
-                    400, responseMessage.PROVIDED_INFO_DOES_NOT_MATCH);
+                    401, responseMessage.PROVIDED_INFO_DOES_NOT_MATCH);
 
             return next();
         }
@@ -48,11 +51,7 @@ exports.login = function(request, response, next) {
             id: foundUser.id
         };
 
-        credential = securityUtils.getCredential(
-                foundUser.email,
-                foundUser.username,
-                foundUser.birthDate);
-
+        credential = securityUtils.getCredential();
         token = securityUtils.getToken(payload, credential);
 
         response.send(200, {
@@ -64,8 +63,8 @@ exports.login = function(request, response, next) {
 
         return next();
     }).catch(error => {
-        logger.log(LOG_LEVEL, TAG + error);
-        responseUtils.errorResponse(response, 500, error);
+        logger.error( `${TAG} login :: ${error}` );
+        responseUtls.errorResponseBaseOnErrorType(error, response);
         return next();
     });
 }
