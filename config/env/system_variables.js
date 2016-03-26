@@ -8,12 +8,13 @@ module.exports = {
     port: process.env.PORT || 3000,
 
     dbMongo: {
-        uri: 'mongodb://localhost:27017/arteesan-dev',
+        uri: 'mongodb://localhost:27017/arteesan',
         options: {
             user: '',
             pass: ''
         },
         // Enable mongoose debug mode
         debug: process.env.MONGODB_DEBUG || false
-    }
+    },
+    auth_secret: 'development'
 };

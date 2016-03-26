@@ -3,13 +3,13 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
-let kartSchema = new Schema({
+let cartSchema = new Schema({
     created     : { type: Date, default: Date.now },
     owner       : { type: Schema.Types.ObjectId, ref: 'User' },
     products    : [{ type: Schema.Types.ObjectId, ref: 'Product' }],
     status      : { type: String, default: 'NEUTRAL' } //NEUTRAL, READY, PURCHASED, CANCELED
-}, { collection: 'karts' });
+}, { collection: 'carts' });
 
-let Kart = mongoose.model('Kart', kartSchema);
+let Cart = mongoose.model('Cart', cartSchema);
 
-module.exports = Kart;
+module.exports = Cart;
