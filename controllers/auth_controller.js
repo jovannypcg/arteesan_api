@@ -5,6 +5,7 @@ let responseMessage = require('./../utils/messages');
 let securityUtils = require('./../utils/security_utilities');
 let responseUtils = require('./../utils/response_utilities');
 let paramsValidator = require('./../utils/params_validators');
+let UnauthorizedError = require('./../utils/errors').UnauthorizedError;
 
 const TAG = 'auth_controller';
 const LOG_LEVEL = 'debug';
@@ -70,55 +71,31 @@ exports.login = function(request, response, next) {
 }
 
 exports.authenticate = function(request, response, next) {
+    const logger = request.log;
+
     let token = request.headers.authorization;
-    let decodedToken = securityUtils.decodeToken(token);
+    let credential = securityUtils.getCredential();
     let verifiedToken;
     let userQuery;
 
-    if (!token || !decodedToken) {
+    if (!token) {
         responseUtils.errorResponse(response,
                 401, responseMessage.UNAUTHORIZED);
 
         return;
     }
 
-    userQuery = {
-        username: decodedToken.username
-    };
-
-    User.findOne(userQuery).exec().then(user => {
-        if (!user) {
-            responseUtils.errorResponse(response,
-                    401, responseMessage.UNAUTHORIZED);
-
-            return;
-        }
-
-        let credential = securityUtils.getCredential(user.email,
-                user.username, user.birthDate);
-
+    try {
         verifiedToken = securityUtils.verifyToken(token, credential);
 
         if (!verifiedToken) {
-            responseUtils.errorResponse(response,
-                    401, responseMessage.UNAUTHORIZED);
-
-            return;
+            throw new UnauthorizedError();
         }
 
         return next();
-    }).catch(error => {
-        logger.log(LOG_LEVEL, TAG + error);
-
-        if (error.name == 'JsonWebTokenError') {
-            responseUtils.errorResponse(response,
-                    401, responseMessage.UNAUTHORIZED);
-        } else {
-            responseUtils.errorResponse(response, 500, error);
-        }
-
+    } catch (error) {
+        logger.error( `${TAG} authenticate :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
-    });
-
-    return next();
+    }
 }

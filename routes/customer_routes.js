@@ -1,5 +1,6 @@
 'use strict';
 
+let authController = require('./../controllers/auth_controller');
 let customersController = require('./../controllers/customers_controller.js');
 
 module.exports = function(server) {

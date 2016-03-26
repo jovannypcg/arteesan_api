@@ -23,17 +23,24 @@ function UserAlreadyRegisteredError(message) {
     this.message = message || 'The entered user is already registered';
 }
 
+function UnauthorizedError(message) {
+    this.name = 'UnauthorizedError';
+    this.message = message || 'Could not authenticate';
+}
+
 NotValidParametersInRequestError.prototype = Error.prototype;
 ObjectNotFoundError.prototype = Error.prototype;
 NoParamsFoundError.prototype = Error.prototype;
 PageNotFoundError.prototype = Error.prototype;
 UserAlreadyRegisteredError.prototype = Error.prototype;
+UnauthorizedError.prototype = Error.prototype;
 
 NotValidParametersInRequestError.prototype.constructor = NotValidParametersInRequestError;
 ObjectNotFoundError.prototype.constructor = ObjectNotFoundError;
 NoParamsFoundError.prototype.constructor = NoParamsFoundError;
 PageNotFoundError.prototype.constructor = PageNotFoundError;
 UserAlreadyRegisteredError.prototype.constructor = UserAlreadyRegisteredError;
+UnauthorizedError.prototype.constructor = UnauthorizedError;
 
 /**
  * Should be thrown when a request has no expected parameters.
@@ -59,3 +66,8 @@ exports.PageNotFoundError = PageNotFoundError;
  * Should be thrown when making a request to a not valid index.
  */
 exports.UserAlreadyRegisteredError = UserAlreadyRegisteredError;
+
+/**
+ * Should be thrown when an authentication fails.
+ */
+exports.UnauthorizedError = UnauthorizedError;

@@ -72,6 +72,7 @@ exports.createCustomer = function(request, response, next) {
         return newCustomer.save();
     }).then(savedUser => {
         response.send(201, savedUser);
+        return next();
     }).catch(error => {
         logger.error(`${TAG} createCustomer :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
@@ -104,6 +105,7 @@ exports.getCustomers = function(request, response, next) {
                 request);
 
         response.send(200, responseObject);
+        return next();
     }).catch(error => {
         logger.error(TAG + error);
         responseUtils.errorResponse(response, 500, error);
@@ -137,6 +139,7 @@ exports.getCustomer = function(request, response, next) {
                 request);
 
         response.send(200, responseObject);
+        return next();
     }).catch(error => {
         logger.error(TAG + error);
         responseUtils.errorResponse(response, 500, error);
@@ -181,6 +184,7 @@ exports.removeCustomer = function(request, response, next) {
                 request);
 
         response.send(200, responseObject);
+        return next();
     }).catch(error => {
         logger.error(`${TAG} removeCustomer :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);

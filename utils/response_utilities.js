@@ -109,6 +109,10 @@ exports.errorResponseBaseOnErrorType = function (error, response){
             this.errorResponse(response,
                     409, responseMessage.USER_ALREADY_REGISTERED);
             break;
+        case 'UnauthorizedError':    
+        case 'JsonWebTokenError':
+            this.errorResponse(response,
+                    401, responseMessage.UNAUTHORIZED);
         case 'ValidationError':
             this.errorResponse(response,
                     409, 'Validation error');
