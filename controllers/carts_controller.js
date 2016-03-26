@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Creates a new kart.
+ * Creates a new cart.
  *
  * @param {object} request  The HTTP request object, which could
  *                          have query parameters.
@@ -10,12 +10,12 @@
  * @param {funciton} next   Callback function to execute after responding
  *                          to the request.
  */
-exports.createKart = function(request, response, next) {
-    response.send(200, { OK: 'createKart' });
+exports.createCart = function(request, response, next) {
+    response.send(200, { OK: 'createCart' });
 }
 
 /**
- * Gets all the karts.
+ * Gets all the carts.
  *
  * @param {object} request  The HTTP request object, which could
  *                          have query parameters.
@@ -24,12 +24,12 @@ exports.createKart = function(request, response, next) {
  * @param {funciton} next   Callback function to execute after responding
  *                          to the request.
  */
-exports.getKarts = function(request, response, next) {
-    response.send(200, { OK: 'getKarts' });
+exports.getCarts = function(request, response, next) {
+    response.send(200, { OK: 'getCarts' });
 }
 
 /**
- * Gets a specific kart.
+ * Gets a specific cart.
  *
  * @param {object} request  The HTTP request object, which could
  *                          have query parameters.
@@ -38,12 +38,12 @@ exports.getKarts = function(request, response, next) {
  * @param {funciton} next   Callback function to execute after responding
  *                          to the request.
  */
-exports.getKart = function(request, response, next) {
-    response.send(200, { OK: 'getKart' });
+exports.getCart = function(request, response, next) {
+    response.send(200, { OK: 'getCart' });
 }
 
 /**
- * Updates specific information of a kart.
+ * Updates specific information of a cart.
  *
  * @param {object} request  The HTTP request object, which could
  *                          have query parameters.
@@ -52,6 +52,6 @@ exports.getKart = function(request, response, next) {
  * @param {funciton} next   Callback function to execute after responding
  *                          to the request.
  */
-exports.patchKart = function(request, response, next) {
-    response.send(200, { OK: 'patchKart' });
+exports.patchCart = function(request, response, next) {
+    response.send(200, { OK: 'patchCart' });
 }
