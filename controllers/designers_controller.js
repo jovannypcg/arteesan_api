@@ -63,6 +63,7 @@ exports.createDesigner = function(request, response, next) {
         return newDesigner.save();
     }).then(savedUser => {
         response.send(201, savedUser);
+        return next();
     }).catch(error => {
         logger.log(LOG_LEVEL, `${TAG} createDesigner :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
@@ -83,6 +84,7 @@ exports.getDesigners = function(request, response, next) {
                 request);
 
         response.send(200, responseObject);
+        return next();
     }).catch(error => {
         logger.log(LOG_LEVEL, TAG + error);
         responseUtils.errorResponse(response, 500, error);
@@ -104,6 +106,7 @@ exports.getDesigner = function(request, response, next) {
                 request);
 
         response.send(200, responseObject);
+        return next();
     }).catch(error => {
         logger.log(LOG_LEVEL, TAG + error);
         responseUtils.errorResponse(response, 500, error);
@@ -146,6 +149,7 @@ exports.removeDesigner = function(request, response, next) {
                 request);
 
         response.send(200, responseObject);
+        return next();
     }).catch(error => {
         logger.log(LOG_LEVEL, `${TAG} removeDesigner:: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
