@@ -22,7 +22,7 @@ const CART_EXPECTED_PARAMS = [
 /**
  * Used to populate 'user' responding a cart request.
  */
-const USER_POPULATE_STRING = 'username';
+const USER_POPULATE_STRING = 'firstName lastName username email birthDate';
 
 /**
  * Creates a new cart.
@@ -90,8 +90,40 @@ exports.createCart = function(request, response, next) {
  * @param {funciton} next   Callback function to execute after responding
  *                          to the request.
  */
-exports.getCarts = function(request, response, next) {
-    response.send(200, { OK: 'getCarts' });
+exports.getUserCarts = function(request, response, next) {
+    const logger = request.log;
+
+    const USERNAME = request.params.username;
+
+    let cartQuery = {};
+    let userQuery = {
+        username: USERNAME,
+        isCustomer: true
+    }
+
+    User.findOne(userQuery).exec().then(foundUser => {
+        if (!foundUser) {
+            throw new ObjectNotFoundError();
+        }
+
+        let userId = foundUser._id;
+
+        cartQuery.owner = userId;
+
+        return Cart.find(cartQuery).populate('owner',
+                USER_POPULATE_STRING).exec();
+    }).then(foundCarts => {
+        let responseObject = responseUtils.convertToResponseObjects(foundCarts,
+                CART_RESPONSE_UNDESIRED_KEYS,
+                request);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error(`${TAG} getCarts :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
