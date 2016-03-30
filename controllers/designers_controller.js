@@ -15,9 +15,9 @@ const TAG = 'designers_controller: ';
 const LOG_LEVEL = 'debug';
 
 const CREATE_DESIGNER_EXPECTED_PARAMS = [
-    'firstName',
-    'lastName',
-    'birthDate',
+    'first_name',
+    'last_name',
+    'birthdate',
     'email',
     'username',
     'password'
@@ -41,9 +41,9 @@ exports.createDesigner = function(request, response, next) {
     }
 
     let newDesigner = new User({
-        firstName   : request.params.firstName,
-        lastName    : request.params.lastName,
-        birthDate   : request.params.birthDate,
+        firstName   : request.params.first_name,
+        lastName    : request.params.last_name,
+        birthDate   : request.params.birthdate,
         picture     : request.params.picture || '',
         email       : request.params.email,
         username    : request.params.username,
@@ -62,7 +62,11 @@ exports.createDesigner = function(request, response, next) {
 
         return newDesigner.save();
     }).then(savedUser => {
-        response.send(201, savedUser);
+        let responseObject = responseUtils.convertToResponseObject(savedUser,
+                DESIGNER_RESPONSE_UNDESIRED_KEYS,
+                request);
+
+        response.send(200, responseObject);
         return next();
     }).catch(error => {
         logger.log(LOG_LEVEL, `${TAG} createDesigner :: ${error}` );
@@ -77,9 +81,7 @@ exports.getDesigners = function(request, response, next) {
     };
 
     User.find(query).exec().then(users => {
-        let responseObject;
-
-        responseObject = responseUtils.convertToResponseObjects(users,
+        let responseObject = responseUtils.convertToResponseObjects(users,
                 DESIGNER_RESPONSE_UNDESIRED_KEYS,
                 request);
 

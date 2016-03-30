@@ -14,7 +14,6 @@ let userSchema = new Schema({
     password    : String,
     status      : { type: String, default: 'ACTIVE' },
     favourites  : [{ type: Schema.Types.ObjectId, ref: 'Product' }],
-    carts       : [{ type: Schema.Types.ObjectId, ref: 'Cart' }],
     followers   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
     isAdmin     : { type: Boolean, default: false },
     isCustomer  : { type: Boolean, default: true },
