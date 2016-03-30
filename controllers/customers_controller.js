@@ -15,9 +15,9 @@ const TAG = 'customers_controller: ';
 const LOG_LEVEL = 'debug';
 
 const CREATE_CUSTOMER_EXPECTED_PARAMS = [
-    'firstName',
-    'lastName',
-    'birthDate',
+    'first_name',
+    'last_name',
+    'birthdate',
     'email',
     'username',
     'password'
@@ -42,7 +42,7 @@ exports.createCustomer = function(request, response, next) {
 
     let userQuery = { username: request.params.username };
 
-    let areValidParams = paramsValidator.validateParams(request.params,
+    let areValidParams = paramsValidator.validateParams(request.body,
             CREATE_CUSTOMER_EXPECTED_PARAMS);
 
     if (!areValidParams) {
@@ -53,9 +53,9 @@ exports.createCustomer = function(request, response, next) {
     }
 
     let newCustomer = new User({
-        firstName   : request.params.firstName,
-        lastName    : request.params.lastName,
-        birthDate   : request.params.birthDate,
+        firstName   : request.params.first_name,
+        lastName    : request.params.last_name,
+        birthDate   : request.params.birthdate,
         picture     : request.params.picture || '',
         email       : request.params.email,
         username    : request.params.username,
@@ -71,7 +71,11 @@ exports.createCustomer = function(request, response, next) {
 
         return newCustomer.save();
     }).then(savedUser => {
-        response.send(201, savedUser);
+        let responseObject = responseUtils.convertToResponseObject(savedUser,
+                CUSTOMER_RESPONSE_UNDESIRED_KEYS,
+                request);
+
+        response.send(200, responseObject);
         return next();
     }).catch(error => {
         logger.error(`${TAG} createCustomer :: ${error}` );
@@ -98,9 +102,7 @@ exports.getCustomers = function(request, response, next) {
     };
 
     User.find(query).exec().then(users => {
-        let responseObject;
-
-        responseObject = responseUtils.convertToResponseObjects(users,
+        let responseObject = responseUtils.convertToResponseObjects(users,
                 CUSTOMER_RESPONSE_UNDESIRED_KEYS,
                 request);
 
