@@ -32,7 +32,7 @@ exports.errorResponse = function (response, status, detail) {
 * @param {array} undesiredKeys Set of keys (in string) you do not want to appear in your docs.
 * @param {object} request Object with the info of de request.
 */
-exports.convertToResponseObject = function (doc, undesiredKeys, request) {
+exports.convertToResponseObject = function (doc, undesiredKeys) {
     let responseObject = { data: {} };
 
     if (!doc) {
@@ -46,10 +46,6 @@ exports.convertToResponseObject = function (doc, undesiredKeys, request) {
     }
 
     responseObject.data = objectUtils.clone(doc);
-
-    if( request ){
-        responseObject.data.link = `${APPLICATION_URL}${request.href()}`;
-    }
 
     return responseObject;
 };
@@ -109,7 +105,7 @@ exports.errorResponseBaseOnErrorType = function (error, response){
             this.errorResponse(response,
                     409, responseMessage.USER_ALREADY_REGISTERED);
             break;
-        case 'UnauthorizedError':    
+        case 'UnauthorizedError':
         case 'JsonWebTokenError':
             this.errorResponse(response,
                     401, responseMessage.UNAUTHORIZED);
