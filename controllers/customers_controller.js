@@ -53,15 +53,15 @@ exports.createCustomer = function(request, response, next) {
     }
 
     let newCustomer = new User({
-        firstName   : request.params.first_name,
-        lastName    : request.params.last_name,
-        birthDate   : request.params.birthdate,
-        picture     : request.params.picture || '',
-        email       : request.params.email,
-        username    : request.params.username,
-        password    : request.params.password,
-        favourites  : request.params.favourites || [],
-        purchases   : request.params.purchases || []
+        first_name: request.params.first_name,
+        last_name : request.params.last_name,
+        birthdate : request.params.birthdate,
+        picture   : request.params.picture || '',
+        email     : request.params.email,
+        username  : request.params.username,
+        password  : request.params.password,
+        favorites : request.params.favourites || [],
+        purchases : request.params.purchases || []
     });
 
     User.findOne(userQuery).exec().then(existingUser => {
@@ -98,7 +98,7 @@ exports.getCustomers = function(request, response, next) {
     const logger = request.log;
 
     let query = {
-        isCustomer: true
+        'role.isCustomer': true
     };
 
     User.find(query).exec().then(users => {
@@ -131,7 +131,7 @@ exports.getCustomer = function(request, response, next) {
     let username = request.params.username;
 
     let query = {
-        isCustomer: true,
+        'role.isCustomer': true,
         username: username
     };
 
