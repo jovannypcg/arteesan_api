@@ -8,6 +8,45 @@ let responseMessage = require('./../utils/messages');
 
 let ObjectNotFoundError = require('./../utils/errors').ObjectNotFoundError;
 
+let Product = require('./../models/product');
+
+const TAG = 'products_controller';
+
+/**
+ * Specifies the mandatory fields that the POST /products request must have.
+ */
+const PRODUCT_EXPECTED_PARAMS = [
+    'name',
+    'price',
+    'description',
+    'thumbnail',
+    'designer'
+];
+
+/**
+ * The values we expect the 'fields' query parameter to have.
+ */
+const FIELDS_EXPECTED_QUERY_VALUES = [
+    'created_at',
+    'name',
+    'price',
+    'description',
+    'status',
+    'available',
+    'tags',
+    'favorites',
+    'purchases',
+    'shares',
+    'designer',
+    'galery'
+];
+
+/**
+ * The "fields" inside this array are going to be ignored
+ * when a product is a response.
+ */
+const PRODUCT_RESPONSE_UNDESIRED_KEYS = [];
+
 /**
  * Inserts a product into the database.
  *
@@ -19,7 +58,39 @@ let ObjectNotFoundError = require('./../utils/errors').ObjectNotFoundError;
  *                          to the request.
  */
 exports.createProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let areValidParams = paramsValidator.validateParams(request.body,
+            PRODUCT_EXPECTED_PARAMS);
+
+    if (!areValidParams) {
+        responseUtils.errorResponse(response,
+                400, responseMessage.MISSED_PARAMS);
+
+        return next();
+    }
+
+    let newProduct = new Product({
+        name: request.body.name,
+        price: request.body.price,
+        description: request.body.description,
+        thumbnail: request.body.thumbnail,
+        designer: request.body.designer
+    });
+
+    newProduct.save().then(savedProduct => {
+        let responseObject = responseUtils.convertToResponseObject(
+                savedProduct,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS,
+                request);
+
+        response.send(201,responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} createProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
