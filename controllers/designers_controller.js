@@ -28,6 +28,8 @@ const DESIGNER_RESPONSE_UNDESIRED_KEYS = [
 ];
 
 exports.createDesigner = function(request, response, next) {
+    const logger = request.log;
+
     let designerQuery = { username: request.params.username };
 
     let areValidParams = paramsValidator.validateParams(request.params,
@@ -41,18 +43,19 @@ exports.createDesigner = function(request, response, next) {
     }
 
     let newDesigner = new User({
-        firstName   : request.params.first_name,
-        lastName    : request.params.last_name,
-        birthDate   : request.params.birthdate,
-        picture     : request.params.picture || '',
-        email       : request.params.email,
-        username    : request.params.username,
-        password    : request.params.password,
-        isCustomer  : true,
-        isDesigner  : true,
-        favourites  : request.params.favourites || [],
-        purchases   : request.params.purchases || [],
-        products    : request.params.products || []
+        first_name: request.params.first_name,
+        last_name : request.params.last_name,
+        birthdate : request.params.birthdate,
+        picture   : request.params.picture || '',
+        email     : request.params.email,
+        username  : request.params.username,
+        password  : request.params.password,
+        favorites : request.params.favourites || [],
+        purchases : request.params.purchases || [],
+        products  : request.params.products || [],
+        role: {
+            isDesigner: true,
+        },
     });
 
     User.findOne(designerQuery).exec().then(existingUser => {
@@ -69,15 +72,17 @@ exports.createDesigner = function(request, response, next) {
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.log(LOG_LEVEL, `${TAG} createDesigner :: ${error}` );
+        logger.error(LOG_LEVEL, `${TAG} createDesigner :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });
 }
 
 exports.getDesigners = function(request, response, next) {
+    const logger = request.log;
+
     let query = {
-        isDesigner: true
+        'role.isDesigner': true
     };
 
     User.find(query).exec().then(users => {
@@ -88,18 +93,19 @@ exports.getDesigners = function(request, response, next) {
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.log(LOG_LEVEL, TAG + error);
+        logger.error(LOG_LEVEL, TAG + error);
         responseUtils.errorResponse(response, 500, error);
         return next();
     });
 }
 
 exports.getDesigner = function(request, response, next) {
-    let username = request.params.username;
+    const logger = request.log;
+    let userId = request.params.userId;
 
     let query = {
-        isDesigner: true,
-        username: username
+        'role.isDesigner': true,
+        _id: userId
     };
 
     User.findOne(query).exec().then(user => {
@@ -110,7 +116,7 @@ exports.getDesigner = function(request, response, next) {
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.log(LOG_LEVEL, TAG + error);
+        logger.error(LOG_LEVEL, TAG + error);
         responseUtils.errorResponse(response, 500, error);
         return next();
     });
@@ -131,12 +137,13 @@ exports.patchDesigner = function(request, response, next) {
  *                          to the request.
  */
 exports.removeDesigner = function(request, response, next) {
-    let username = request.params.username;
+    const logger = request.log;
+    let userId = request.params.userId;
 
     let query = {
-        isDesigner  : true,
-        isAdmin     : false,
-        username    : username
+        isDesigner: true,
+        isAdmin   : false,
+        _id       : userId
     };
 
     User.findOne(query).exec().then((user) => {
@@ -153,7 +160,7 @@ exports.removeDesigner = function(request, response, next) {
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.log(LOG_LEVEL, `${TAG} removeDesigner:: ${error}` );
+        logger.error(LOG_LEVEL, `${TAG} removeDesigner:: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });

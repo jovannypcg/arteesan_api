@@ -57,8 +57,7 @@ exports.login = function(request, response, next) {
 
         response.send(200, {
             data: {
-                token: token,
-                credential: credential
+                token: token
             }
         });
 

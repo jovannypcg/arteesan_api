@@ -4,15 +4,19 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 let productSchema = new Schema({
-    createdAt: { type: Date, default: Date.now },
+    created_at   : { type: Date, default: Date.now },
     name        : String,
     price       : Number,
-    description : { type: String, default: 'Not available' },
-    galery      : { type: Array, default: [] },
+    description : { type: String, trim: true },
+    galery      : [{
+        _id : Schema.Types.ObjectId,
+        description: { type: String, trim: true },
+        media_url: String
+    }],
     tags        : { type: Array, default: [] },
-    favourites  : { type: Number, default: 0 },
-    purchases   : { type: Number, default: 0 },
-    shares      : { type: Number, default: 0 },
+    favorites   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    purchases   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    shares      : [{ type: Schema.Types.ObjectId, ref: 'User' }],
     designer    : { type: Schema.Types.ObjectId, ref: 'User' }
 }, { collection: 'products' });
 

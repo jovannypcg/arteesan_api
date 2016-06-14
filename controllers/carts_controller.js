@@ -22,7 +22,7 @@ const CART_EXPECTED_PARAMS = [
 /**
  * Used to populate 'user' responding a cart request.
  */
-const USER_POPULATE_STRING = 'firstName lastName username email birthDate';
+const USER_POPULATE_STRING = 'first_name last_name username email birthdate';
 
 /**
  * Creates a new cart.
@@ -37,10 +37,11 @@ const USER_POPULATE_STRING = 'firstName lastName username email birthDate';
 exports.createCart = function(request, response, next) {
     const logger = request.log;
 
-    const USERNAME = request.params.username;
+    let userId = request.params.userId;
+
     const userQuery = {
-        username: USERNAME,
-        isCustomer: true
+        _id: userId,
+        'role.isCustomer': true
     };
 
     let areValidParams = paramsValidator.validateParams(request.body,
@@ -93,12 +94,12 @@ exports.createCart = function(request, response, next) {
 exports.getUserCarts = function(request, response, next) {
     const logger = request.log;
 
-    const USERNAME = request.params.username;
+    let userId = request.params.userId;
 
     let cartQuery = {};
     let userQuery = {
-        username: USERNAME,
-        isCustomer: true
+        _id: userId,
+        'role.isCustomer': true
     }
 
     User.findOne(userQuery).exec().then(foundUser => {

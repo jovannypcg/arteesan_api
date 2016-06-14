@@ -53,15 +53,15 @@ exports.createCustomer = function(request, response, next) {
     }
 
     let newCustomer = new User({
-        firstName   : request.params.first_name,
-        lastName    : request.params.last_name,
-        birthDate   : request.params.birthdate,
-        picture     : request.params.picture || '',
-        email       : request.params.email,
-        username    : request.params.username,
-        password    : request.params.password,
-        favourites  : request.params.favourites || [],
-        purchases   : request.params.purchases || []
+        first_name: request.params.first_name,
+        last_name : request.params.last_name,
+        birthdate : request.params.birthdate,
+        picture   : request.params.picture || '',
+        email     : request.params.email,
+        username  : request.params.username,
+        password  : request.params.password,
+        favorites : request.params.favourites || [],
+        purchases : request.params.purchases || []
     });
 
     User.findOne(userQuery).exec().then(existingUser => {
@@ -98,7 +98,7 @@ exports.getCustomers = function(request, response, next) {
     const logger = request.log;
 
     let query = {
-        isCustomer: true
+        'role.isCustomer': true
     };
 
     User.find(query).exec().then(users => {
@@ -128,11 +128,11 @@ exports.getCustomers = function(request, response, next) {
  */
 exports.getCustomer = function(request, response, next) {
     const logger = request.log;
-    let username = request.params.username;
+    let userId = request.params.userId;
 
     let query = {
-        isCustomer: true,
-        username: username
+        'role.isCustomer': true,
+        _id: userId
     };
 
     User.findOne(query).exec().then(user => {
@@ -165,13 +165,13 @@ exports.patchCustomer = function(request, response, next) {
  */
 exports.removeCustomer = function(request, response, next) {
     const logger = request.log;
-    let username = request.params.username;
+    let userId = request.params.userId;
 
     let query = {
-        isCustomer  : true,
-        isDesigner  : false,
-        isAdmin     : false,
-        username    : username
+        isCustomer: true,
+        isDesigner: false,
+        isAdmin   : false,
+        _id       : userId
     };
 
     User.findOne(query).exec().then((user) => {
