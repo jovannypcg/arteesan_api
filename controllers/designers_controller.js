@@ -41,18 +41,19 @@ exports.createDesigner = function(request, response, next) {
     }
 
     let newDesigner = new User({
-        firstName   : request.params.first_name,
-        lastName    : request.params.last_name,
-        birthDate   : request.params.birthdate,
-        picture     : request.params.picture || '',
-        email       : request.params.email,
-        username    : request.params.username,
-        password    : request.params.password,
-        isCustomer  : true,
-        isDesigner  : true,
-        favourites  : request.params.favourites || [],
-        purchases   : request.params.purchases || [],
-        products    : request.params.products || []
+        first_name: request.params.first_name,
+        last_name : request.params.last_name,
+        birthdate : request.params.birthdate,
+        picture   : request.params.picture || '',
+        email     : request.params.email,
+        username  : request.params.username,
+        password  : request.params.password,
+        favorites : request.params.favourites || [],
+        purchases : request.params.purchases || [],
+        products  : request.params.products || [],
+        role: {
+            isDesigner: true,
+        },
     });
 
     User.findOne(designerQuery).exec().then(existingUser => {
@@ -77,7 +78,7 @@ exports.createDesigner = function(request, response, next) {
 
 exports.getDesigners = function(request, response, next) {
     let query = {
-        isDesigner: true
+        'role.isDesigner': true
     };
 
     User.find(query).exec().then(users => {
@@ -98,7 +99,7 @@ exports.getDesigner = function(request, response, next) {
     let username = request.params.username;
 
     let query = {
-        isDesigner: true,
+        'role.isDesigner': true,
         username: username
     };
 
