@@ -128,11 +128,11 @@ exports.getCustomers = function(request, response, next) {
  */
 exports.getCustomer = function(request, response, next) {
     const logger = request.log;
-    let username = request.params.username;
+    let userId = request.params.userId;
 
     let query = {
         'role.isCustomer': true,
-        username: username
+        _id: userId
     };
 
     User.findOne(query).exec().then(user => {
@@ -165,13 +165,13 @@ exports.patchCustomer = function(request, response, next) {
  */
 exports.removeCustomer = function(request, response, next) {
     const logger = request.log;
-    let username = request.params.username;
+    let userId = request.params.userId;
 
     let query = {
-        isCustomer  : true,
-        isDesigner  : false,
-        isAdmin     : false,
-        username    : username
+        isCustomer: true,
+        isDesigner: false,
+        isAdmin   : false,
+        _id       : userId
     };
 
     User.findOne(query).exec().then((user) => {
