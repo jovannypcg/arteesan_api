@@ -13,6 +13,8 @@ let productSchema = new Schema({
         description: { type: String, trim: true },
         media_url: String
     }],
+    status:    : { type: String, default: 'ACTIVE' },
+    available  : { type Boolean, default: true },
     tags        : { type: Array, default: [] },
     favorites   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
     purchases   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
