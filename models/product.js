@@ -10,12 +10,13 @@ let productSchema = new Schema({
     description : { type: String, trim: true },
     status      : { type: String, default: 'ACTIVE' },
     available   : { type: Boolean, default: true },
-    tags        : { type: Array, default: [] },
-    favorites   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    purchases   : [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    shares      : [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    tags        : [{ type: String, default: [] }],
+    favorites   : [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
+    purchases   : [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
+    shares      : [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
     designer    : { type: Schema.Types.ObjectId, ref: 'User' },
-    galery      : [{
+    thumbnail   : String,
+    pics        : [{
         _id: Schema.Types.ObjectId,
         description: { type: String, trim: true },
         media_url: String
