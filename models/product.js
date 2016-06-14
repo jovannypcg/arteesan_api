@@ -6,7 +6,7 @@ let Schema = mongoose.Schema;
 let productSchema = new Schema({
     created_at  : { type: Date, default: Date.now },
     name        : String,
-    price: Number,
+    price       : Number,
     description : { type: String, trim: true },
     status      : { type: String, default: 'ACTIVE' },
     available   : { type: Boolean, default: true },
