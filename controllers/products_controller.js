@@ -327,7 +327,41 @@ exports.getProduct = function(request, response, next) {
  *                          to the request.
  */
 exports.patchProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let query = { _id: request.params.productId };
+
+    if (objectUtils.isEmpty(request.body)) {
+        responseUtils.errorResponse(response,
+                400, responseMessage.NOT_VALID_PARAMS);
+
+        return next();
+    }
+
+    Product.findOne(query).exec().then(product => {
+        if (!product) {
+            throw new ObjectNotFoundError();
+        }
+
+        product.name = request.body.name || product.name;
+        product.price = request.body.price || product.price;
+        product.description = request.body.description || product.description;
+        product.thumbnail = request.body.thumbnail || product.thumbnail;
+        product.designer = request.body.designer || product.designer;
+
+        return product.save();
+    }).then(patchedProduct => {
+        let responseObject = responseUtils.convertToResponseObject(
+                patchedProduct,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} patchProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
