@@ -7,6 +7,7 @@ let productSchema = new Schema({
     created_at  : { type: Date, default: Date.now },
     name        : String,
     price       : Number,
+    category    : { type: String, trim: true },
     description : { type: String, trim: true },
     status      : { type: String, default: 'ACTIVE' },
     available   : { type: Boolean, default: true },
