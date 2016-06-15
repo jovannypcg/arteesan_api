@@ -268,7 +268,52 @@ exports.getProducts = function(request, response, next) {
  *                          to the request.
  */
 exports.getProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let query = { _id: request.params.productId };
+    let fields = {};
+
+    let productQuery = Product.findOne(query);
+
+    if (!objectUtils.isEmpty(request.query)) {
+        let areValidQueryParams = paramsValidator.validateQueryParams(request.query);
+
+        if (!areValidQueryParams) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        fields = paramsValidator.getFieldsFromQuery(request.query,
+                FIELDS_EXPECTED_QUERY_VALUES);
+
+        if (!fields) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        productQuery = Product.findOne(query, fields);
+    }
+
+    productQuery.exec().then(product => {
+        if (!product) {
+            throw new ObjectNotFoundError();
+        }
+
+        let responseObject = responseUtils.convertToResponseObject(
+                product,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} getProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
