@@ -7,15 +7,13 @@ const SORT = 'sort';
 const PAGE_NUMBER = 'page';
 const PAGE_SIZE = 'limit';
 const FIELD = 'fields';
-const INCLUDE = 'include';
 
 const EXPECTED_QUERY_PARAMS = [
     FILTER,
     SORT,
     PAGE_NUMBER,
     PAGE_SIZE,
-    FIELD,
-    INCLUDE
+    FIELD
 ];
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -29,7 +27,6 @@ module.exports = {
     PAGE_NUMBER_QUERY_STRING: PAGE_NUMBER,
     PAGE_SIZE_QUERY_STRING: PAGE_SIZE,
     FIELD_QUERY_STRING: FIELD,
-    INCLUDE_QUERY_STRING: INCLUDE,
 
     /**
      * Validates if the keys of a JSON object are expected.
@@ -120,34 +117,6 @@ module.exports = {
         }
 
         return fields;
-    },
-
-    /**
-     * Gets the 'include' values from the query parameters.
-     *
-     * @param {object} The request query.
-     * @param {array} validFields Valid fields that 'requestQuery' must have.
-     * @return {object} The fields in the request query.
-     */
-    getIncludesFromQuery: function(requestQuery, validIncludes) {
-        let includes = [];
-
-        if (this.INCLUDE_QUERY_STRING in requestQuery) {
-            let includesInQuery =requestQuery[this.INCLUDE_QUERY_STRING].split(',');
-
-            let areValidQueryValues =
-                    this.validateQueryParamValues(includesInQuery, validIncludes);
-
-            if (!areValidQueryValues) {
-                return undefined;
-            }
-
-            for (let includeInQuery of includesInQuery) {
-                includes.push(includeInQuery);
-            }
-        }
-
-        return includes;
     },
 
     /**
