@@ -33,7 +33,7 @@ exports.errorResponse = function (response, status, detail) {
 * @param {array} undesiredKeys Set of keys (in string) you do not want to appear in your docs.
 * @param {object} request Object with the info of de request.
 */
-exports.convertToResponseObject = function (doc, undesiredKeys, request) {
+exports.convertToResponseObject = function (doc, undesiredKeys) {
     let responseObject = { data: {} };
 
     if (!doc) {
@@ -44,11 +44,6 @@ exports.convertToResponseObject = function (doc, undesiredKeys, request) {
 
     for (let undesiredKey of undesiredKeys) {
         doc[undesiredKey] = undefined;
-    }
-
-    if( request ){
-        responseObject.data.links = {};
-        responseObject.data.links.self = `${APPLICATION_URL}${request.href()}`;
     }
 
     responseObject.data = objectUtils.clone(doc);
@@ -103,7 +98,7 @@ exports.errorResponseBaseOnErrorType = function (error, response){
             break;
         case 'CastError':
             this.errorResponse(response,
-                    404, 'cast error');
+                    404, responseMessage.OBJECT_NOT_FOUND);
             break;
         case 'ObjectNotFoundError':
             this.errorResponse(response,

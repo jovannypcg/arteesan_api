@@ -144,13 +144,10 @@ exports.getProducts = function(request, response, next) {
     let sortFields = {};
     let pagination = {};
     let limit = {};
-    let includes = [];
 
-    let productsQuery;
+    let productsQuery = Product.find({});
 
-    if (objectUtils.isEmpty(request.query)) {
-        productsQuery = Product.find({}).exec();
-    } else {
+    if (!objectUtils.isEmpty(request.query)) {
         let areValidQueryParams = paramsValidator.validateQueryParams(
                 request.query);
 
@@ -167,10 +164,8 @@ exports.getProducts = function(request, response, next) {
                 FILTER_EXPECTED_QUERY_VALUES);
         sortFields = paramsValidator.getSortFieldsFromQuery(request.query,
                 SORT_EXPECTED_QUERY_VALUES);
-        includes = paramsValidator.getIncludesFromQuery(request.query,
-                INCLUDES_EXPECTED_QUERY_VALUES);
 
-        if (!filterObject || !fields || !sortFields || !includes) {
+        if (!filterObject || !fields || !sortFields) {
             responseUtils.errorResponse(response,
                     400, responseMessage.NOT_VALID_QUERY_PARAMS);
 
@@ -189,33 +184,26 @@ exports.getProducts = function(request, response, next) {
         // Create Query
         productsQuery = Product.find(query, fields);
 
-        // Adding populates
-        if(includes.length > 0){
-            if( objectUtils.inArray('designer', includes) ){
-                productsQuery = productsQuery.populate('designer',
-                        DESIGNER_POPULATE_STRING);
-            }
-        }
-
         if (pagination.hasPagination) {
             productsQuery = productsQuery
                     .sort(sortFields)
                     .skip(pagination.skip)
-                    .limit(pagination.pageSize)
-                    .exec();
+                    .limit(pagination.pageSize);
         } else if ( limit.hasLimit ) {
             productsQuery = productsQuery
                     .sort(sortFields)
-                    .limit(limit.limitNumber)
-                    .exec();
+                    .limit(limit.limitNumber);
         } else {
             productsQuery = productsQuery
-                    .sort(sortFields)
-                    .exec();
+                    .sort(sortFields);
         }
     }
 
-    productsQuery.then(products => {
+    // Population is made
+    productsQuery = productsQuery.populate('designer',
+            DESIGNER_POPULATE_STRING);
+
+    productsQuery.exec().then(products => {
         if (pagination.hasPagination) {
             Product.find(query, fields)
                     .sort(sortFields)
@@ -268,7 +256,56 @@ exports.getProducts = function(request, response, next) {
  *                          to the request.
  */
 exports.getProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let query = { _id: request.params.productId };
+    let fields = {};
+
+    let productQuery = Product.findOne(query);
+
+    if (!objectUtils.isEmpty(request.query)) {
+        let areValidQueryParams = paramsValidator.validateQueryParams(request.query);
+
+        if (!areValidQueryParams) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        fields = paramsValidator.getFieldsFromQuery(request.query,
+                FIELDS_EXPECTED_QUERY_VALUES);
+
+        if (!fields) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        productQuery = Product.findOne(query, fields);
+    }
+
+    // Population is made
+    productQuery = productQuery.populate('designer',
+            DESIGNER_POPULATE_STRING);
+
+    productQuery.exec().then(product => {
+        if (!product) {
+            throw new ObjectNotFoundError();
+        }
+
+        let responseObject = responseUtils.convertToResponseObject(
+                product,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} getProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
@@ -282,7 +319,41 @@ exports.getProduct = function(request, response, next) {
  *                          to the request.
  */
 exports.patchProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let query = { _id: request.params.productId };
+
+    if (objectUtils.isEmpty(request.body)) {
+        responseUtils.errorResponse(response,
+                400, responseMessage.NOT_VALID_PARAMS);
+
+        return next();
+    }
+
+    Product.findOne(query).exec().then(product => {
+        if (!product) {
+            throw new ObjectNotFoundError();
+        }
+
+        product.name = request.body.name || product.name;
+        product.price = request.body.price || product.price;
+        product.description = request.body.description || product.description;
+        product.thumbnail = request.body.thumbnail || product.thumbnail;
+        product.designer = request.body.designer || product.designer;
+
+        return product.save();
+    }).then(patchedProduct => {
+        let responseObject = responseUtils.convertToResponseObject(
+                patchedProduct,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} patchProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
@@ -296,5 +367,26 @@ exports.patchProduct = function(request, response, next) {
  *                          to the request.
  */
 exports.deleteProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let query = { _id: request.params.productId };
+
+    Product.findOne(query).exec().then(product => {
+        if (!product) {
+            throw new ObjectNotFoundError();
+        }
+
+        return product.remove();
+    }).then(deletedProduct => {
+        let responseObject = responseUtils.convertToResponseObject(
+                deletedProduct,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} deleteProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
