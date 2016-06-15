@@ -18,6 +18,7 @@ const TAG = 'products_controller';
 const PRODUCT_EXPECTED_PARAMS = [
     'name',
     'price',
+    'category',
     'description',
     'thumbnail',
     'designer'
@@ -30,6 +31,7 @@ const FIELDS_EXPECTED_QUERY_VALUES = [
     'created_at',
     'name',
     'price',
+    'category',
     'description',
     'status',
     'available',
@@ -49,6 +51,7 @@ const SORT_EXPECTED_QUERY_VALUES = [
     'created_at',
     'name',
     'price',
+    'category',
     'status'
 ];
 
@@ -58,6 +61,7 @@ const SORT_EXPECTED_QUERY_VALUES = [
 const FILTER_EXPECTED_QUERY_VALUES = [
     'created_at',
     'price',
+    'category',
     'status',
     'available',
     'designer'
@@ -103,11 +107,12 @@ exports.createProduct = function(request, response, next) {
     }
 
     let newProduct = new Product({
-        name: request.body.name,
-        price: request.body.price,
-        description: request.body.description,
-        thumbnail: request.body.thumbnail,
-        designer: request.body.designer
+        name        : request.body.name,
+        price       : request.body.price,
+        category    : request.body.category,
+        description : request.body.description,
+        thumbnail   : request.body.thumbnail,
+        designer    : request.body.designer
     });
 
     newProduct.save().then(savedProduct => {
@@ -337,6 +342,7 @@ exports.patchProduct = function(request, response, next) {
 
         product.name = request.body.name || product.name;
         product.price = request.body.price || product.price;
+        product.category = request.body.category || product.category;
         product.description = request.body.description || product.description;
         product.thumbnail = request.body.thumbnail || product.thumbnail;
         product.designer = request.body.designer || product.designer;
