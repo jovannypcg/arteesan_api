@@ -21,7 +21,8 @@ const PRODUCT_EXPECTED_PARAMS = [
     'category',
     'description',
     'thumbnail',
-    'designer'
+    'designer',
+    'tags'
 ];
 
 /**
@@ -30,6 +31,7 @@ const PRODUCT_EXPECTED_PARAMS = [
 const FIELDS_EXPECTED_QUERY_VALUES = [
     'created_at',
     'name',
+    'tags',
     'price',
     'category',
     'description',
@@ -112,7 +114,8 @@ exports.createProduct = function(request, response, next) {
         category    : request.body.category,
         description : request.body.description,
         thumbnail   : request.body.thumbnail,
-        designer    : request.body.designer
+        designer    : request.body.designer,
+        tags        : request.body.tags
     });
 
     newProduct.save().then(savedProduct => {
@@ -346,6 +349,7 @@ exports.patchProduct = function(request, response, next) {
         product.description = request.body.description || product.description;
         product.thumbnail = request.body.thumbnail || product.thumbnail;
         product.designer = request.body.designer || product.designer;
+        product.tags = request.body.tags || product.tags;
 
         return product.save();
     }).then(patchedProduct => {
