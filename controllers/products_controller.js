@@ -38,7 +38,29 @@ const FIELDS_EXPECTED_QUERY_VALUES = [
     'purchases',
     'shares',
     'designer',
-    'galery'
+    'thumbnail',
+    'pics'
+];
+
+/**
+ * The values that the 'sort' query parameter is expected to have.
+ */
+const SORT_EXPECTED_QUERY_VALUES = [
+    'created_at',
+    'name',
+    'price',
+    'status'
+];
+
+/**
+ * The values that the 'filter' query parameter is expected to have.
+ */
+const FILTER_EXPECTED_QUERY_VALUES = [
+    'created_at',
+    'price',
+    'status',
+    'available',
+    'designer'
 ];
 
 /**
@@ -47,6 +69,16 @@ const FIELDS_EXPECTED_QUERY_VALUES = [
  */
 const PRODUCT_RESPONSE_UNDESIRED_KEYS = [];
 
+/**
+ * The values that the 'includes' query parameter is expected to have.
+ */
+const INCLUDES_EXPECTED_QUERY_VALUES = ['designer'];
+
+/**
+ * Used to populate 'designers' when getProducts is executed.
+ */
+const DESIGNER_POPULATE_STRING
+        = '_id first_name birthdate picture email username status followers';
 /**
  * Inserts a product into the database.
  *
@@ -104,7 +136,125 @@ exports.createProduct = function(request, response, next) {
  *                          to the request.
  */
 exports.getProducts = function(request, response, next) {
+    const logger = request.log;
 
+    let query = {};
+    let fields = {};
+    let filterObject = {};
+    let sortFields = {};
+    let pagination = {};
+    let limit = {};
+    let includes = [];
+
+    let productsQuery;
+
+    if (objectUtils.isEmpty(request.query)) {
+        productsQuery = Product.find({}).exec();
+    } else {
+        let areValidQueryParams = paramsValidator.validateQueryParams(
+                request.query);
+
+        if (!areValidQueryParams) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        fields = paramsValidator.getFieldsFromQuery(request.query,
+                FIELDS_EXPECTED_QUERY_VALUES);
+        filterObject = paramsValidator.getFiltersFromQuery(request.query,
+                FILTER_EXPECTED_QUERY_VALUES);
+        sortFields = paramsValidator.getSortFieldsFromQuery(request.query,
+                SORT_EXPECTED_QUERY_VALUES);
+        includes = paramsValidator.getIncludesFromQuery(request.query,
+                INCLUDES_EXPECTED_QUERY_VALUES);
+
+        if (!filterObject || !fields || !sortFields || !includes) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        for (let filter in filterObject) {
+            query[filter] = filterObject[filter];
+        }
+
+        limit = paramsValidator.getLimitFromQuery(request.query);
+
+        pagination = paramsValidator.getPaginationFromQuery(request.query,
+                limit.limitNumber);
+
+        // Create Query
+        productsQuery = Product.find(query, fields);
+
+        // Adding populates
+        if(includes.length > 0){
+            if( objectUtils.inArray('designer', includes) ){
+                productsQuery = productsQuery.populate('designer',
+                        DESIGNER_POPULATE_STRING);
+            }
+        }
+
+        if (pagination.hasPagination) {
+            productsQuery = productsQuery
+                    .sort(sortFields)
+                    .skip(pagination.skip)
+                    .limit(pagination.pageSize)
+                    .exec();
+        } else if ( limit.hasLimit ) {
+            productsQuery = productsQuery
+                    .sort(sortFields)
+                    .limit(limit.limitNumber)
+                    .exec();
+        } else {
+            productsQuery = productsQuery
+                    .sort(sortFields)
+                    .exec();
+        }
+    }
+
+    productsQuery.then(products => {
+        if (pagination.hasPagination) {
+            Product.find(query, fields)
+                    .sort(sortFields)
+                    .count()
+                    .exec()
+                    .then((totalProducts) => {
+                let responseObject = responseUtils.convertToResponseObjects(
+                        products,
+                        PRODUCT_RESPONSE_UNDESIRED_KEYS,
+                        request);
+
+                responseObject = responseUtils.addPaginationLinks(request,
+                        pagination.page,
+                        pagination.pageSize,
+                        totalProducts,
+                        responseObject);
+
+                response.send(200, responseObject);
+                return next();
+            }).catch((error) => {
+                logger.error(`${TAG} getProducts :: ${error}`);
+                responseUtils.errorResponseBaseOnErrorType(error, response);
+
+                return next();
+            });
+        } else {
+            let responseObject = responseUtils.convertToResponseObjects(
+                    products,
+                    PRODUCT_RESPONSE_UNDESIRED_KEYS,
+                    request);
+
+            response.send(200, responseObject);
+            return next();
+        }
+    }).catch(error => {
+        logger.error( `${TAG} getProducts :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
