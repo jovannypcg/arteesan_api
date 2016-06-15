@@ -144,13 +144,10 @@ exports.getProducts = function(request, response, next) {
     let sortFields = {};
     let pagination = {};
     let limit = {};
-    let includes = [];
 
-    let productsQuery;
+    let productsQuery = Product.find({});
 
-    if (objectUtils.isEmpty(request.query)) {
-        productsQuery = Product.find({}).exec();
-    } else {
+    if (!objectUtils.isEmpty(request.query)) {
         let areValidQueryParams = paramsValidator.validateQueryParams(
                 request.query);
 
@@ -167,10 +164,8 @@ exports.getProducts = function(request, response, next) {
                 FILTER_EXPECTED_QUERY_VALUES);
         sortFields = paramsValidator.getSortFieldsFromQuery(request.query,
                 SORT_EXPECTED_QUERY_VALUES);
-        includes = paramsValidator.getIncludesFromQuery(request.query,
-                INCLUDES_EXPECTED_QUERY_VALUES);
 
-        if (!filterObject || !fields || !sortFields || !includes) {
+        if (!filterObject || !fields || !sortFields) {
             responseUtils.errorResponse(response,
                     400, responseMessage.NOT_VALID_QUERY_PARAMS);
 
@@ -189,33 +184,26 @@ exports.getProducts = function(request, response, next) {
         // Create Query
         productsQuery = Product.find(query, fields);
 
-        // Adding populates
-        if(includes.length > 0){
-            if( objectUtils.inArray('designer', includes) ){
-                productsQuery = productsQuery.populate('designer',
-                        DESIGNER_POPULATE_STRING);
-            }
-        }
-
         if (pagination.hasPagination) {
             productsQuery = productsQuery
                     .sort(sortFields)
                     .skip(pagination.skip)
-                    .limit(pagination.pageSize)
-                    .exec();
+                    .limit(pagination.pageSize);
         } else if ( limit.hasLimit ) {
             productsQuery = productsQuery
                     .sort(sortFields)
-                    .limit(limit.limitNumber)
-                    .exec();
+                    .limit(limit.limitNumber);
         } else {
             productsQuery = productsQuery
-                    .sort(sortFields)
-                    .exec();
+                    .sort(sortFields);
         }
     }
 
-    productsQuery.then(products => {
+    // Population is made
+    productsQuery = productsQuery.populate('designer',
+            DESIGNER_POPULATE_STRING);
+
+    productsQuery.exec().then(products => {
         if (pagination.hasPagination) {
             Product.find(query, fields)
                     .sort(sortFields)
@@ -297,6 +285,10 @@ exports.getProduct = function(request, response, next) {
 
         productQuery = Product.findOne(query, fields);
     }
+
+    // Population is made
+    productQuery = productQuery.populate('designer',
+            DESIGNER_POPULATE_STRING);
 
     productQuery.exec().then(product => {
         if (!product) {
