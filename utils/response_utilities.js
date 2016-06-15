@@ -98,7 +98,7 @@ exports.errorResponseBaseOnErrorType = function (error, response){
             break;
         case 'CastError':
             this.errorResponse(response,
-                    404, 'cast error');
+                    404, responseMessage.OBJECT_NOT_FOUND);
             break;
         case 'ObjectNotFoundError':
             this.errorResponse(response,
