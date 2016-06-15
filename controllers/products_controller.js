@@ -296,5 +296,26 @@ exports.patchProduct = function(request, response, next) {
  *                          to the request.
  */
 exports.deleteProduct = function(request, response, next) {
+    const logger = request.log;
 
+    let query = { _id: request.params.productId };
+
+    Product.findOne(query).exec().then(product => {
+        if (!product) {
+            throw new ObjectNotFoundError();
+        }
+
+        return product.remove();
+    }).then(deletedProduct => {
+        let responseObject = responseUtils.convertToResponseObject(
+                deletedProduct,
+                PRODUCT_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} deleteProduct :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
