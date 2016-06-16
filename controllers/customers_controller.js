@@ -116,9 +116,9 @@ exports.createCustomer = function(request, response, next) {
 
         return newCustomer.save();
     }).then(savedUser => {
-        let responseObject = responseUtils.convertToResponseObject(savedUser,
-                CUSTOMER_RESPONSE_UNDESIRED_KEYS,
-                request);
+        let responseObject = responseUtils.convertToResponseObject(
+                savedUser,
+                CUSTOMER_RESPONSE_UNDESIRED_KEYS);
 
         response.send(200, responseObject);
         return next();
@@ -152,7 +152,7 @@ exports.getCustomers = function(request, response, next) {
     let pagination = {};
     let limit = {};
 
-    let usersQuery = User.find({});
+    let usersQuery = User.find(query);
 
     if (!objectUtils.isEmpty(request.query)) {
         let areValidQueryParams = paramsValidator.validateQueryParams(
@@ -242,7 +242,7 @@ exports.getCustomers = function(request, response, next) {
             return next();
         }
     }).catch(error => {
-        logger.error( `${TAG} getUsers :: ${error}` );
+        logger.error( `${TAG} getCustomers :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });
@@ -307,14 +307,54 @@ exports.getCustomer = function(request, response, next) {
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.error( `${TAG} getUser :: ${error}` );
+        logger.error( `${TAG} getCustomer :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });
 }
 
 exports.patchCustomer = function(request, response, next) {
-    response.send(200, {OK: 'PATCH /customers/:username'});
+    const logger = request.log;
+
+    let query = {
+        _id: request.params.userId,
+        'role.isCustomer': true
+    };
+
+    if (objectUtils.isEmpty(request.body)) {
+        responseUtils.errorResponse(response,
+                400, responseMessage.NOT_VALID_PARAMS);
+
+        return next();
+    }
+
+    User.findOne(query).exec().then(user => {
+        if (!user) {
+            throw new ObjectNotFoundError();
+        }
+
+        user.first_name = request.body.first_name || user.first_name;
+        user.last_name = request.body.last_name || user.last_name;
+        user.birthdate = request.body.birthdate || user.birthdate;
+        user.picture = request.body.picture || user.picture;
+        user.email = request.body.email || user.email;
+        user.password = request.body.password || user.password;
+        user.status = request.body.status || user.status;
+        user.role = request.body.role || user.role;
+
+        return user.save();
+    }).then(patchedUser => {
+        let responseObject = responseUtils.convertToResponseObject(
+                patchedUser,
+                CUSTOMER_RESPONSE_UNDESIRED_KEYS);
+
+        response.send(200, responseObject);
+        return next();
+    }).catch(error => {
+        logger.error( `${TAG} patchCustomer:: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
+        return next();
+    });
 }
 
 /**
@@ -332,27 +372,29 @@ exports.removeCustomer = function(request, response, next) {
     let userId = request.params.userId;
 
     let query = {
-        isCustomer: true,
-        isDesigner: false,
-        isAdmin   : false,
-        _id       : userId
+        _id: userId,
+        'role.isCustomer': true,
+        'role.isAdmin': false,
+        'role.isDesigner': false
     };
 
-    User.findOne(query).exec().then((user) => {
+    console.log(query);
+
+    User.findOne(query).exec().then(user => {
         if (!user) {
             throw new ObjectNotFoundError();
         }
 
         return user.remove();
-    }).then(removedUser => {
-        let responseObject = responseUtils.convertToResponseObject(removedUser,
-                CUSTOMER_RESPONSE_UNDESIRED_KEYS,
-                request);
+    }).then(deletedUser => {
+        let responseObject = responseUtils.convertToResponseObject(
+                deletedUser,
+                CUSTOMER_RESPONSE_UNDESIRED_KEYS);
 
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.error(`${TAG} removeCustomer :: ${error}` );
+        logger.error( `${TAG} deleteCustomer :: ${error}` );
         responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });
