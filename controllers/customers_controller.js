@@ -11,16 +11,61 @@ let ObjectNotFoundError = require('./../utils/errors').ObjectNotFoundError;
 
 let User = require( './../models/user');
 
-const TAG = 'customers_controller: ';
-const LOG_LEVEL = 'debug';
+const TAG = 'customers_controller';
 
-const CREATE_CUSTOMER_EXPECTED_PARAMS = [
+/**
+ * Specifies the mandatory fields that the POST /customers request must have.
+ */
+const CUSTOMER_EXPECTED_PARAMS = [
     'first_name',
     'last_name',
     'birthdate',
     'email',
     'username',
     'password'
+];
+
+/**
+ * The values we expect the 'fields' query parameter to have.
+ */
+const FIELDS_EXPECTED_QUERY_VALUES = [
+    'created_at',
+    'first_name',
+    'last_name',
+    'birthdate',
+    'picture',
+    'email',
+    'username',
+    'status',
+    'favorites',
+    'role'
+];
+
+/**
+ * The values that the 'sort' query parameter is expected to have.
+ */
+const SORT_EXPECTED_QUERY_VALUES = [
+    'created_at',
+    'first_name',
+    'last_name',
+    'birthdate',
+    'email',
+    'username',
+    'status'
+];
+
+/**
+ * The values that the 'filter' query parameter is expected to have.
+ */
+const FILTER_EXPECTED_QUERY_VALUES = [
+    'created_at',
+    'first_name',
+    'last_name',
+    'birthdate',
+    'picture',
+    'email',
+    'username',
+    'status'
 ];
 
 const CUSTOMER_RESPONSE_UNDESIRED_KEYS = [
@@ -43,7 +88,7 @@ exports.createCustomer = function(request, response, next) {
     let userQuery = { username: request.params.username };
 
     let areValidParams = paramsValidator.validateParams(request.body,
-            CREATE_CUSTOMER_EXPECTED_PARAMS);
+            CUSTOMER_EXPECTED_PARAMS);
 
     if (!areValidParams) {
         responseUtils.errorResponse(response,
@@ -101,16 +146,104 @@ exports.getCustomers = function(request, response, next) {
         'role.isCustomer': true
     };
 
-    User.find(query).exec().then(users => {
-        let responseObject = responseUtils.convertToResponseObjects(users,
-                CUSTOMER_RESPONSE_UNDESIRED_KEYS,
-                request);
+    let fields = {};
+    let filterObject = {};
+    let sortFields = {};
+    let pagination = {};
+    let limit = {};
 
-        response.send(200, responseObject);
-        return next();
+    let usersQuery = User.find({});
+
+    if (!objectUtils.isEmpty(request.query)) {
+        let areValidQueryParams = paramsValidator.validateQueryParams(
+                request.query);
+
+        if (!areValidQueryParams) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        fields = paramsValidator.getFieldsFromQuery(request.query,
+                FIELDS_EXPECTED_QUERY_VALUES);
+        filterObject = paramsValidator.getFiltersFromQuery(request.query,
+                FILTER_EXPECTED_QUERY_VALUES);
+        sortFields = paramsValidator.getSortFieldsFromQuery(request.query,
+                SORT_EXPECTED_QUERY_VALUES);
+
+        if (!filterObject || !fields || !sortFields) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        for (let filter in filterObject) {
+            query[filter] = filterObject[filter];
+        }
+
+        limit = paramsValidator.getLimitFromQuery(request.query);
+
+        pagination = paramsValidator.getPaginationFromQuery(request.query,
+                limit.limitNumber);
+
+        // Create Query
+        usersQuery = User.find(query, fields);
+
+        if (pagination.hasPagination) {
+            usersQuery = usersQuery
+                    .sort(sortFields)
+                    .skip(pagination.skip)
+                    .limit(pagination.pageSize);
+        } else if ( limit.hasLimit ) {
+            usersQuery = usersQuery
+                    .sort(sortFields)
+                    .limit(limit.limitNumber);
+        } else {
+            usersQuery = usersQuery
+                    .sort(sortFields);
+        }
+    }
+
+    usersQuery.exec().then(users => {
+        if (pagination.hasPagination) {
+            User.find(query, fields)
+                    .sort(sortFields)
+                    .count()
+                    .exec()
+                    .then((totalUsers) => {
+                let responseObject = responseUtils.convertToResponseObjects(
+                        users,
+                        CUSTOMER_RESPONSE_UNDESIRED_KEYS,
+                        request);
+
+                responseObject = responseUtils.addPaginationLinks(request,
+                        pagination.page,
+                        pagination.pageSize,
+                        totalUsers,
+                        responseObject);
+
+                response.send(200, responseObject);
+                return next();
+            }).catch((error) => {
+                logger.error(`${TAG} getUsers :: ${error}`);
+                responseUtils.errorResponseBaseOnErrorType(error, response);
+
+                return next();
+            });
+        } else {
+            let responseObject = responseUtils.convertToResponseObjects(
+                    users,
+                    CUSTOMER_RESPONSE_UNDESIRED_KEYS,
+                    request);
+
+            response.send(200, responseObject);
+            return next();
+        }
     }).catch(error => {
-        logger.error(TAG + error);
-        responseUtils.errorResponse(response, 500, error);
+        logger.error( `${TAG} getUsers :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });
 }
