@@ -268,16 +268,47 @@ exports.getCustomer = function(request, response, next) {
         _id: userId
     };
 
-    User.findOne(query).exec().then(user => {
-        let responseObject = responseUtils.convertToResponseObject(user,
-                CUSTOMER_RESPONSE_UNDESIRED_KEYS,
-                request);
+    let fields = {};
+
+    let userQuery = User.findOne(query);
+
+    if (!objectUtils.isEmpty(request.query)) {
+        let areValidQueryParams = paramsValidator.validateQueryParams(request.query);
+
+        if (!areValidQueryParams) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        fields = paramsValidator.getFieldsFromQuery(request.query,
+                FIELDS_EXPECTED_QUERY_VALUES);
+
+        if (!fields) {
+            responseUtils.errorResponse(response,
+                    400, responseMessage.NOT_VALID_QUERY_PARAMS);
+
+            return next();
+        }
+
+        userQuery = User.findOne(query, fields);
+    }
+
+    userQuery.exec().then(user => {
+        if (!user) {
+            throw new ObjectNotFoundError();
+        }
+
+        let responseObject = responseUtils.convertToResponseObject(
+                user,
+                CUSTOMER_RESPONSE_UNDESIRED_KEYS);
 
         response.send(200, responseObject);
         return next();
     }).catch(error => {
-        logger.error(TAG + error);
-        responseUtils.errorResponse(response, 500, error);
+        logger.error( `${TAG} getUser :: ${error}` );
+        responseUtils.errorResponseBaseOnErrorType(error, response);
         return next();
     });
 }
