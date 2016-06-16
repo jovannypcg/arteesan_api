@@ -105,8 +105,7 @@ exports.createCustomer = function(request, response, next) {
         email     : request.params.email,
         username  : request.params.username,
         password  : request.params.password,
-        favorites : request.params.favourites || [],
-        purchases : request.params.purchases || []
+        favorites : request.params.favourites || []
     });
 
     User.findOne(userQuery).exec().then(existingUser => {
