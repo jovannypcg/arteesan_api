@@ -69,7 +69,8 @@ const FILTER_EXPECTED_QUERY_VALUES = [
 ];
 
 const CUSTOMER_RESPONSE_UNDESIRED_KEYS = [
-    'password'
+    'password',
+    'followers'
 ];
 
 /**
