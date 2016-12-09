@@ -18,10 +18,10 @@ const TAG = 'customers_controller';
  */
 const CUSTOMER_EXPECTED_PARAMS = [
     'first_name',
-    'last_name',
-    'birthdate',
+    // 'last_name',
+    // 'birthdate',
     'email',
-    'username',
+    // 'username',
     'password'
 ];
 
@@ -86,7 +86,8 @@ const CUSTOMER_RESPONSE_UNDESIRED_KEYS = [
 exports.createCustomer = function(request, response, next) {
     const logger = request.log;
 
-    let userQuery = { username: request.params.username };
+    // let userQuery = { username: request.params.username };
+    let userQuery = { email: request.params.email };
 
     let areValidParams = paramsValidator.validateParams(request.body,
             CUSTOMER_EXPECTED_PARAMS);
@@ -100,11 +101,11 @@ exports.createCustomer = function(request, response, next) {
 
     let newCustomer = new User({
         first_name: request.params.first_name,
-        last_name : request.params.last_name,
-        birthdate : request.params.birthdate,
-        picture   : request.params.picture || '',
+        // last_name : request.params.last_name,
+        // birthdate : request.params.birthdate,
+        // picture   : request.params.picture || '',
         email     : request.params.email,
-        username  : request.params.username,
+        // username  : request.params.username,
         password  : request.params.password,
         favorites : request.params.favourites || []
     });
